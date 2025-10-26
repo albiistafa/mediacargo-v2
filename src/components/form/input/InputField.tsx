@@ -5,6 +5,7 @@ interface InputProps {
   id?: string;
   name?: string;
   placeholder?: string;
+  value?: string | number; 
   defaultValue?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
@@ -12,6 +13,7 @@ interface InputProps {
   max?: string;
   step?: number;
   disabled?: boolean;
+  required?: boolean;
   success?: boolean;
   error?: boolean;
   hint?: string; // Optional hint text
@@ -22,6 +24,7 @@ const Input: FC<InputProps> = ({
   id,
   name,
   placeholder,
+  value,
   defaultValue,
   onChange,
   className = "",
@@ -29,6 +32,7 @@ const Input: FC<InputProps> = ({
   max,
   step,
   disabled = false,
+  required = false,
   success = false,
   error = false,
   hint,
@@ -47,21 +51,25 @@ const Input: FC<InputProps> = ({
     inputClasses += ` bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800`;
   }
 
+  const inputProps = {
+    type,
+    id,
+    name,
+    placeholder,
+    onChange,
+    min,
+    max,
+    step,
+    disabled,
+    required,
+    className: inputClasses,
+    // Conditional props: gunakan value jika ada, kalau tidak gunakan defaultValue
+    ...(value !== undefined ? { value } : { defaultValue }),
+  };
+
   return (
     <div className="relative">
-      <input
-        type={type}
-        id={id}
-        name={name}
-        placeholder={placeholder}
-        defaultValue={defaultValue}
-        onChange={onChange}
-        min={min}
-        max={max}
-        step={step}
-        disabled={disabled}
-        className={inputClasses}
-      />
+     <input {...inputProps} />
 
       {/* Optional Hint Text */}
       {hint && (

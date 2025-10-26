@@ -252,7 +252,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link href="/basic-tables">
+        <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
