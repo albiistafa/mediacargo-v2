@@ -14,9 +14,16 @@ const WeekCard = ({ label, start, end }: WeekCardProps) => {
 
   const handleClick = () => {
     if (start && end) {
-      // Format dates untuk URL params (YYYY-MM-DD)
-      const startDate = start.toISOString().split('T')[0];
-      const endDate = end.toISOString().split('T')[0];
+      // Format dates untuk URL params (YYYY-MM-DD) tanpa konversi timezone
+      const formatDateForURL = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      const startDate = formatDateForURL(start);
+      const endDate = formatDateForURL(end);
       router.push(`/utama-tables/week-detail?start=${startDate}&end=${endDate}`);
     }
   };

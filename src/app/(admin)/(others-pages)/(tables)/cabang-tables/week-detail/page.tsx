@@ -28,8 +28,13 @@ function WeekDetailContent() {
       setError(null);
 
       try {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        // Parse dates dengan timezone +08:00 (WIB)
+        const parseWithTimezone = (dateString: string): Date => {
+          return new Date(`${dateString}T00:00:00+08:00`);
+        };
+
+        const start = parseWithTimezone(startDate);
+        const end = parseWithTimezone(endDate);
 
         const response = await getLaporan({
           startDate: formatDateForAPI(start, false),
@@ -63,9 +68,13 @@ function WeekDetailContent() {
     );
   }
 
-  // Parse dates
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  // Parse dates dengan timezone +08:00 (WIB)
+  const parseWithTimezone = (dateString: string): Date => {
+    return new Date(`${dateString}T00:00:00+08:00`);
+  };
+
+  const start = parseWithTimezone(startDate);
+  const end = parseWithTimezone(endDate);
 
   // Format tanggal untuk tampilan
   const formatDate = (date: Date) => {
