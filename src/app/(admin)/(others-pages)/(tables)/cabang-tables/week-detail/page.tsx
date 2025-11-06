@@ -30,11 +30,13 @@ function WeekDetailContent() {
       try {
         // Parse dates dengan timezone +08:00 (WIB)
         const parseWithTimezone = (dateString: string): Date => {
-          return new Date(`${dateString}T00:00:00+08:00`);
-        };
+          return new Date(`${dateString}T00:00:00`);
+        }; 
 
         const start = parseWithTimezone(startDate);
         const end = parseWithTimezone(endDate);
+
+        console.log("Fetching data for:", start, end);
 
         const response = await getLaporan({
           startDate: formatDateForAPI(start, false),
@@ -70,7 +72,7 @@ function WeekDetailContent() {
 
   // Parse dates dengan timezone +08:00 (WIB)
   const parseWithTimezone = (dateString: string): Date => {
-    return new Date(`${dateString}T00:00:00+08:00`);
+    return new Date(`${dateString}T00:00:00`);
   };
 
   const start = parseWithTimezone(startDate);
@@ -85,9 +87,6 @@ function WeekDetailContent() {
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
-  // Calculate statistics from data
-  const completedTrips = tableData.length; // Semua data yang ada
-  const pendingTrips = 0; // Bisa disesuaikan jika ada status pending
   const totalRevenue = tableData.reduce((sum, item) => {
     return sum + item.rate_after_tax;
   }, 0);
@@ -125,23 +124,31 @@ function WeekDetailContent() {
             </div>
           </ComponentCard>
           
-          <ComponentCard title="Trip Selesai">
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-              {isLoading ? "..." : completedTrips}
-            </div>
-          </ComponentCard>
-          
-          <ComponentCard title="Trip Pending">
-            <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-              {isLoading ? "..." : pendingTrips}
-            </div>
-          </ComponentCard>
-          
           <ComponentCard title="Total Revenue">
             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {isLoading ? "..." : `Rp ${totalRevenue.toLocaleString('id-ID')}`}
             </div>
           </ComponentCard>
+        </div>
+
+        <div className="flex justify-end">
+          <button className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            > 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Export PDF
+          </button>
         </div>
 
         {/* Tabel Detail Trip */}
@@ -168,24 +175,7 @@ function WeekDetailContent() {
               </svg>
               Kembali
             </button>
-
-            <button className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              Export PDF
-            </button>
+            
           </div>
         </ComponentCard>
       </div>
