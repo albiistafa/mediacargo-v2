@@ -58,8 +58,8 @@ export const getLaporan = async (params: GetLaporanParams): Promise<LaporanRespo
     const queryParams = new URLSearchParams({
       startDate: params.startDate,
       endDate: params.endDate,
-      search: params.search || "utama",
-      field: params.field || "rute",
+      search: params.search || "",
+      field: params.field || "",
       page: String(params.page || 1),
       limit: String(params.limit || 10),
     });
