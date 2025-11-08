@@ -3,14 +3,24 @@ import React, { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Select from "../Select";
+import Input from '../input/InputField';
 import MultiSelect from "../MultiSelect";
 import { ChevronDownIcon } from "@/icons";
 
 export default function SelectInputs() {
-  const options = [
-    { value: "marketing", label: "Marketing" },
-    { value: "template", label: "Template" },
-    { value: "development", label: "Development" },
+  const jenisRute = [
+    { value: "utama", label: "Utama" },
+    { value: "cabang", label: "Cabang" },
+  ];
+
+  const jenisRitase = [
+    { value: "reguler", label: "Reguler" },
+    { value: "dorongan", label: "Dorongan" },
+  ];
+
+  const jenisTrip = [
+    { value: "satu pihak", label: "Satu Pihak" },
+    { value: "dua pihak", label: "Dua Pihak" },
   ];
 
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
@@ -28,13 +38,17 @@ export default function SelectInputs() {
   ];
 
   return (
-    <ComponentCard title="Select Inputs">
+    <ComponentCard title="Input Rute">
       <div className="space-y-6">
+        {/* <div>
+          <Label>Input</Label>
+          <Input type="text" />
+        </div> */}
         <div>
-          <Label>Select Input</Label>
+          <Label>Jenis Trip</Label>
          <div className="relative">
            <Select
-            options={options}
+            options={jenisTrip}
             placeholder="Select Option"
             onChange={handleSelectChange}
             className="dark:bg-dark-900"
@@ -43,10 +57,27 @@ export default function SelectInputs() {
               <ChevronDownIcon/>
             </span>
          </div>
+         
         </div>
+        <div>
+          <Label>Rute Utama/Cabang</Label>
+         <div className="relative">
+           <Select
+            options={jenisRute}
+            placeholder="Select Option"
+            onChange={handleSelectChange}
+            className="dark:bg-dark-900"
+          />
+          <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+         </div>
+         
+        </div>
+
         <div className="relative">
           <MultiSelect
-            label="Multiple Select Options"
+            label="Input Rute"
             options={multiOptions}
             defaultSelected={["1", "3"]}
             onChange={(values) => setSelectedValues(values)}
@@ -55,6 +86,25 @@ export default function SelectInputs() {
             Selected Values: {selectedValues.join(", ")}
           </p>
         </div>
+        
+        <div>
+          <Label>Jenis Ritase</Label>
+         <div className="relative">
+           <Select
+            options={jenisRitase}
+            placeholder="Select Option"
+            onChange={handleSelectChange}
+            className="dark:bg-dark-900"
+          />
+          <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+         </div>
+         
+        </div>
+
+         
+        
       </div>
     </ComponentCard>
   );

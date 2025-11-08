@@ -1,5 +1,4 @@
 "use client";
-import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
@@ -11,7 +10,6 @@ import Alert from "@/components/ui/alert/Alert";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const {
     email,
     setEmail,
@@ -35,16 +33,6 @@ export default function SignInForm() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Enter your email and password to sign in!
             </p>
-            {error && (
-              <div className="mt-4">
-                <Alert
-                  variant="error"
-                  title="Login Gagal"
-                  message={error}
-                  showLink={false}
-                />
-              </div>
-            )}
           </div>
           <div>
             <form onSubmit={handleSubmit}>
@@ -87,6 +75,16 @@ export default function SignInForm() {
                     </span>
                   </div>
                 </div>
+                {error && (
+              <div className="mt-4">
+                <Alert
+                  variant="error"
+                  title="Login Gagal"
+                  message={error}
+                  showLink={false}
+                />
+              </div>
+            )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                   </div>

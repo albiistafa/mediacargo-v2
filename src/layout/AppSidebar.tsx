@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
   {
     icon: <PencilIcon/>,
     name: "Input Data",
-    path: "/form-elements",
+    subItems: [{ name: "Laporan", path: "/input-laporan", pro: false}, { name: "Rute", path: "/input-rute", pro: false}],
   },
 ];
 

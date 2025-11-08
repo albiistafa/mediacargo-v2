@@ -3,38 +3,38 @@ import React, { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import TextArea from "../input/TextArea";
 import Label from "../Label";
+import Input from "../input/InputField";
 
 export default function TextAreaInput() {
   const [message, setMessage] = useState("");
   const [messageTwo, setMessageTwo] = useState("");
   return (
-    <ComponentCard title="Textarea input field">
+    <ComponentCard title="Input Tax">
       <div className="space-y-6">
+      <div>
+          <Label>Rate Sebelum Tax</Label>
+          <Input type="text" />
+        </div>
+        <div>
+          <Label>PPN 1.1%</Label>
+          <Input type="text" />
+        </div>
+        <div>
+          <Label>PPH 2%</Label>
+          <Input type="text" />
+        </div>
+        <div>
+          <Label>Total Setelah Tax</Label>
+          <Input type="text" />
+        </div>
+
         {/* Default TextArea */}
         <div>
-          <Label>Description</Label>
+          <Label>Keterangan</Label>
           <TextArea
             value={message}
             onChange={(value) => setMessage(value)}
             rows={6}
-          />
-        </div>
-
-        {/* Disabled TextArea */}
-        <div>
-          <Label>Description</Label>
-          <TextArea rows={6} disabled />
-        </div>
-
-        {/* Error TextArea */}
-        <div>
-          <Label>Description</Label>
-          <TextArea
-            rows={6}
-            value={messageTwo}
-            error
-            onChange={(value) => setMessageTwo(value)}
-            hint="Please enter a valid message."
           />
         </div>
       </div>
