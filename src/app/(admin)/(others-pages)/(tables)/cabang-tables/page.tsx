@@ -19,13 +19,15 @@ const laporanData = generateLaporanData(4);
 
 export default function CabangTables() {
   return (
-    <div>
+    <div className="overflow-hidden">
       <PageBreadcrumb pageTitle="Cabang" />
-      <div className="space-y-6">
+      <div className="space-y-6 overflow-hidden">
         <ComponentCard title="Laporan Trip">
-          {laporanData.map(({ month, weeks }) => (
-            <MonthReport key={month} month={month} weeks={weeks} />
-          ))}
+          <div className="overflow-hidden">
+            {laporanData.map(({ month, weeks }) => (
+              <MonthReport key={month} month={month} weeks={weeks} />
+            ))}
+          </div>
           {/* <BasicTableOne /> */}
         </ComponentCard>
       </div>

@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -6,311 +8,308 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-
-import Badge from "../ui/badge/Badge";
-import Image from "next/image";
-
-interface Order {
-  id: number;
-  user: {
-    image: string;
-    name: string;
-    role: string;
-  };
-  projectName: string;
-  team: {
-    images: string[];
-  };
-  status: string;
-  budget: string;
-}
-
-// Define the table data using the interface
-const tableData: Order[] = [
-  {
-    id: 1,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Lindsey Curtis",
-      role: "Web Designer",
-    },
-    projectName: "Agency Website",
-    team: {
-      images: [
-        "/images/user/user-22.jpg",
-        "/images/user/user-23.jpg",
-        "/images/user/user-24.jpg",
-      ],
-    },
-    budget: "3.9K",
-    status: "Active",
-  },
-  {
-    id: 2,
-    user: {
-      image: "/images/user/user-18.jpg",
-      name: "Kaiya George",
-      role: "Project Manager",
-    },
-    projectName: "Technology",
-    team: {
-      images: ["/images/user/user-25.jpg", "/images/user/user-26.jpg"],
-    },
-    budget: "24.9K",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Zain Geidt",
-      role: "Content Writing",
-    },
-    projectName: "Blog Writing",
-    team: {
-      images: ["/images/user/user-27.jpg"],
-    },
-    budget: "12.7K",
-    status: "Active",
-  },
-  {
-    id: 4,
-    user: {
-      image: "/images/user/user-20.jpg",
-      name: "Abram Schleifer",
-      role: "Digital Marketer",
-    },
-    projectName: "Social Media",
-    team: {
-      images: [
-        "/images/user/user-28.jpg",
-        "/images/user/user-29.jpg",
-        "/images/user/user-30.jpg",
-      ],
-    },
-    budget: "2.8K",
-    status: "Cancel",
-  },
-  {
-    id: 5,
-    user: {
-      image: "/images/user/user-21.jpg",
-      name: "Carla George",
-      role: "Front-end Developer",
-    },
-    projectName: "Website",
-    team: {
-      images: [
-        "/images/user/user-31.jpg",
-        "/images/user/user-32.jpg",
-        "/images/user/user-33.jpg",
-      ],
-    },
-    budget: "4.5K",
-    status: "Active",
-  },
-];
+import { 
+  getAllLaporan, 
+  LaporanItem, 
+  formatRuteLaporan, 
+  formatDateTime 
+} from "../../../services/laporan.services";
+import { Dropdown } from "../ui/dropdown/Dropdown";
+import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import Alert from "../ui/alert/Alert";
+import { useDeleteLaporan } from "@/hooks/useDeleteLaporan";
 
 export default function BasicTableOne() {
-  return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="max-w-full overflow-x-auto">
-        <div className="min-w-[1102px]">
-          <Table>
-            {/* Table Header */}
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  No
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Agen Kepemilikan
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Carrier Company
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  No Surat Jalan
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  No Seal
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Nama Driver
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Nama Rute
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Jenis Rute
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Ritase
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Plat Nomor
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Keterangan Plat
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Jenis Kendaraan
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Jenis Trip
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Waktu Berangkat
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Waktu Tiba
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Rate Sebelum Tax
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  PPN 1,1%
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  PPH 2%
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Total Setelah Tax
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Keterangan
-                </TableCell>
-              </TableRow>
-            </TableHeader>
+  const [tableData, setTableData] = useState<LaporanItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-            {/* Table Body */}
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {tableData.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="px-5 py-4 sm:px-6 text-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 overflow-hidden rounded-full">
-                        <Image
-                          width={40}
-                          height={40}
-                          src={order.user.image}
-                          alt={order.user.name}
-                        />
-                      </div>
-                      <div>
-                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                          {order.user.name}
-                        </span>
-                        <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                          {order.user.role}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {order.projectName}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <div className="flex -space-x-2">
-                      {order.team.images.map((teamImage, index) => (
-                        <div
-                          key={index}
-                          className="w-6 h-6 overflow-hidden border-2 border-white rounded-full dark:border-gray-900"
-                        >
-                          <Image
-                            width={24}
-                            height={24}
-                            src={teamImage}
-                            alt={`Team member ${index + 1}`}
-                            className="w-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <Badge
-                      size="sm"
-                      color={
-                        order.status === "Active"
-                          ? "success"
-                          : order.status === "Pending"
-                          ? "warning"
-                          : "error"
-                      }
-                    >
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {order.budget}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+  const { handleDelete: deleteItem, loading: deleteLoading, error: deleteError, success: deleteSuccess } = useDeleteLaporan(() => {
+    // Callback ketika delete berhasil - refresh data
+    fetchData();
+  });
+
+  // Jumlah data per halaman (ubah sesuai kebutuhan)
+  const itemsPerPage = 10;
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Handle Edit
+  const handleEdit = (item: LaporanItem) => {
+    console.log("Edit laporan:", item.id);
+    // TODO: Implementasi edit logic
+  };
+
+  // Fetch all data (tanpa pagination backend)
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await getAllLaporan();
+
+      if (response.success && response.data) {
+        setTableData(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching laporan:", err);
+      setError("Gagal memuat data laporan");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Delete dengan hook
+  const handleDelete = async (item: LaporanItem) => {
+    const success = await deleteItem(item.id, item.surat_jalan);
+    if (success) {
+      setShowDeleteAlert(true);
+      setTimeout(() => setShowDeleteAlert(false), 5000);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Pagination manual di frontend
+  const totalPages = Math.ceil(tableData.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
+
+  // State Loading
+  if (isLoading) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
+        <div className="flex justify-center items-center py-12">
+          <div className="text-gray-500 dark:text-gray-400">
+            Memuat semua data laporan...
+          </div>
         </div>
       </div>
+    );
+  }
+
+  // State Error
+  if (error) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
+        <div className="flex justify-center items-center py-12">
+          <div className="text-red-500">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // State Kosong
+  if (!tableData || tableData.length === 0) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
+        <div className="flex justify-center items-center py-12">
+          <div className="text-gray-500 dark:text-gray-400">
+            Belum ada data laporan
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Delete Alert */}
+      {showDeleteAlert && deleteSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+          <Alert
+            variant="success"
+            title="Berhasil"
+            message="Laporan berhasil dihapus"
+          />
+        </div>
+      )}
+
+      {showDeleteAlert && deleteError && (
+        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+          <Alert
+            variant="error"
+            title="Error"
+            message={deleteError}
+          />
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="max-w-full overflow-x-auto">
+          <div className="min-w-[2000px] relative">
+            <Table>
+              {/* Table Header */}
+              <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] sticky top-0 z-40 bg-white dark:bg-gray-900">
+                <TableRow>
+                  {/* Other Headers */}
+                  {[
+                    "No",
+                    "No Surat Jalan",
+                    "No Seal",
+                    "Nama Driver",
+                    "Nama Rute",
+                    "Jenis Rute",
+                    "Ritase",
+                    "Plat Nomor",
+                    "Keterangan Plat",
+                    "Jenis Kendaraan",
+                    "Jenis Trip",
+                    "Waktu Berangkat",
+                    "Waktu Tiba",
+                    "Rate Sebelum Tax",
+                    "PPN 1,1%",
+                    "PPH 2%",
+                    "Total Setelah Tax",
+                    "Keterangan",
+                  ].map((header, idx) => (
+                    <TableCell
+                      key={idx}
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      {header}
+                    </TableCell>
+                  ))}
+
+                  {/* Sticky Aksi Column Header */}
+                  <TableCell
+                    isHeader
+                    className="sticky right-0 z-50 px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-white/[0.05]"
+                  >
+                    Aksi
+                  </TableCell>
+                </TableRow>
+              </TableHeader>
+
+              {/* Table Body */}
+              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                {currentItems.map((item, index) => (
+                  <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      {/* Regular Columns */}
+                      <TableCell className="px-5 py-4 text-start font-medium text-gray-800 dark:text-white/90">
+                        {indexOfFirstItem + index + 1}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
+                        {item.surat_jalan}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
+                        {item.no_seal}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
+                        {item.driver}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
+                        {formatRuteLaporan(item.ruteLaporan)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {item.rute}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {item.ritase}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
+                        {item.no_plat}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {item.ket_plat}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {item.mobil}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {item.trip}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {formatDateTime(item.keberangkatan)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {formatDateTime(item.kedatangan)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
+                        {formatCurrency(item.rate_before_tax)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {formatCurrency(item.ppn_rate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {formatCurrency(item.pph_rate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-semibold">
+                        {formatCurrency(item.rate_after_tax)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                        {item.keterangan || "-"}
+                      </TableCell>
+
+                      {/* Sticky Aksi Column di akhir */}
+                      <TableCell className="sticky right-0 z-40 px-4 py-3 text-center bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-white/[0.05]">
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item)}
+                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+
+      {/* Pagination Manual */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 py-4">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+
+          <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

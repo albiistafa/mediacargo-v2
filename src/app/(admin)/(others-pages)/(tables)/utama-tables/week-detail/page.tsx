@@ -110,12 +110,12 @@ function WeekDetailContent() {
   }
 
   return (
-    <div>
+    <div className="overflow-hidden">
       <PageBreadcrumb 
         pageTitle={`Laporan Minggu ${formatDate(start)} - ${formatDate(end)}`}
       />
       
-      <div className="space-y-6">
+      <div className="space-y-6 overflow-hidden">
         {/* Statistik Ringkasan */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <ComponentCard title="Total Trip">
@@ -153,7 +153,9 @@ function WeekDetailContent() {
 
         {/* Tabel Detail Trip */}
         <ComponentCard title="Detail Trip Mingguan">
-          <WeekTable data={tableData} isLoading={isLoading} />          {/* Tombol Kembali */}
+          <div className="overflow-hidden">
+            <WeekTable data={tableData} isLoading={isLoading} />
+          </div>          {/* Tombol Kembali */}
           <div className="mt-6 flex justify-between items-center">
             <button
               onClick={() => router.back()}

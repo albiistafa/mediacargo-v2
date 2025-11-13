@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { postRute } from "../../services/rute.services";
+import { postRute, getRute } from "../../services/rute.services";
+import { Rute } from "../../types/rute";
 
 export function useRute(){
     const [rute, setRute] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [ruteList, setRuteList] = useState<Rute[]>([]);
 
     const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
@@ -19,12 +21,26 @@ export function useRute(){
             try {
                 const data = await postRute(rute);
                 setSuccess(true);
-
-            } catch (err) {
-                setError("Email atau password salah.");
+                setRute(""); // Reset form jika berhasil
+            } catch (err: any) {
+                setError(err.message || "Gagal menambahkan rute");
             } finally {
                 setLoading(false);
-                setSuccess(false);
+                // Jangan reset success di sini, biarkan RuteInputs handle
+            }
+        };
+
+    const fetchRute = async () => {
+            setLoading(true);
+            setError(null);
+            
+            try {
+                const data = await getRute();
+                setRuteList(data.data);
+            } catch (err: any) {
+                setError(err.message || 'Gagal mengambil data rute');
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -34,7 +50,10 @@ export function useRute(){
         loading,
         error,
         success,
+        setSuccess,
         handleSubmit,
+        ruteList,
+        fetchRute,
     };    
 
 }

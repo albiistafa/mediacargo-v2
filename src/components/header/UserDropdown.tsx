@@ -62,25 +62,22 @@ const handleLogout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     <div className="relative">
       <button
         onClick={toggleDropdown} 
-        className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
+        className="flex items-center gap-2 text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <Image
-            width={44}
-            height={44}
-            src="/images/user/owner.jpg"
-            alt="User"
-          />
+        <span className="flex items-center justify-center rounded-full h-10 w-10 bg-white border border-gray-200 text-blue-600 hover:bg-gray-100 hover:text-blue-700 dark:border-gray-800 dark:bg-gray-900 dark:text-blue-400 dark:hover:bg-gray-800 dark:hover:text-blue-300 transition-colors flex-shrink-0">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          </svg>
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">{profile?.name}</span>
+        <span className="block font-medium text-theme-sm hidden sm:block">{profile?.name}</span>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
+          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 flex-shrink-0 ${
             isOpen ? "rotate-180" : ""
           }`}
-          width="18"
-          height="20"
+          width="16"
+          height="16"
           viewBox="0 0 18 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

@@ -1,4 +1,5 @@
 import axiosInstance from "../lib/axios";
+import { PostLaporanRequest, PostLaporanResponse } from "../types/laporan";
 
 export interface RuteLaporan {
   id: number;
@@ -41,6 +42,43 @@ export interface LaporanResponse {
   data: LaporanItem[];
 }
 
+export interface GetAllLaporanParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  field?: string;
+}
+
+/**
+ * Get ALL laporan data without date range filter
+ * Untuk menampilkan semua data tanpa batasan tanggal
+ */
+export const getAllLaporan = async (
+  params?: GetAllLaporanParams
+): Promise<LaporanResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    // Jika tidak ada page/limit dari frontend, pakai nilai override
+    queryParams.append('page', String(params?.page || 1));
+    queryParams.append('limit', String(params?.limit || 999999)); 
+
+    if (params?.search) {
+      queryParams.append('search', params.search);
+      queryParams.append('field', params.field || 'rute');
+    }
+
+    const response = await axiosInstance.get<LaporanResponse>(
+      `/laporan/?${queryParams.toString()}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all laporan:", error);
+    throw error;
+  }
+};
+
 export interface GetLaporanParams {
   startDate: string; // ISO format date
   endDate: string; // ISO format date
@@ -58,8 +96,8 @@ export const getLaporan = async (params: GetLaporanParams): Promise<LaporanRespo
     const queryParams = new URLSearchParams({
       startDate: params.startDate,
       endDate: params.endDate,
-      search: params.search || "utama",
-      field: params.field || "rute",
+      search: params.search || "",
+      field: params.field || "",
       page: String(params.page || 1),
       limit: String(params.limit || 10),
     });
@@ -98,7 +136,7 @@ export const formatRuteLaporan = (ruteLaporan: RuteLaporan[]): string => {
   return ruteLaporan
     .sort((a, b) => a.urutan - b.urutan)
     .map(item => item.rute.rute)
-    .join(' - ');
+    .join(' - '); 
 };
 
 /**
@@ -114,3 +152,70 @@ export const formatDateTime = (dateString: string): string => {
   
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 };;
+
+/**
+ * Post laporan data
+ */
+export const postLaporan = async (data: PostLaporanRequest): Promise<PostLaporanResponse> => {
+  try {
+    const response = await axiosInstance.post<PostLaporanResponse>('/laporan', data);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Gagal menambahkan laporan');
+    } else if (error.request) {
+      throw new Error('Tidak dapat terhubung ke server');
+    } else {
+      throw new Error(error.message || 'Terjadi kesalahan');
+    }
+  }
+};
+
+/**
+ * Delete laporan data
+ */
+export const deleteLaporan = async (id: number): Promise<PostLaporanResponse> => {
+  try {
+    console.log(`[deleteLaporan] Attempting to delete laporan with ID: ${id}`);
+    
+    const response = await axiosInstance.delete<PostLaporanResponse>(`/laporan/${id}`);
+    console.log(`[deleteLaporan] Success response:`, response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("[deleteLaporan] Full error object:", error);
+    
+    if (error.response) {
+      // Server responded with error status
+      console.error("[deleteLaporan] Error response status:", error.response.status);
+      console.error("[deleteLaporan] Error response data:", error.response.data);
+      
+      if (error.response.status === 404) {
+        console.warn("[deleteLaporan] Got 404 - endpoint might not exist or route not matched");
+        throw new Error(`Laporan dengan ID ${id} tidak ditemukan atau endpoint tidak tersedia`);
+      }
+      
+      if (error.response.status === 405) {
+        throw new Error('Method DELETE tidak di-support untuk endpoint ini');
+      }
+      
+      // Try to extract message from various response formats
+      let message = 'Gagal menghapus laporan';
+      
+      if (error.response.data?.message) {
+        message = error.response.data.message;
+      } else if (typeof error.response.data === 'string') {
+        message = error.response.data;
+      }
+      
+      throw new Error(`${message} (Status: ${error.response.status})`);
+    } else if (error.request) {
+      // Request made but no response
+      console.error("[deleteLaporan] Error request:", error.request);
+      throw new Error('Tidak dapat terhubung ke server');
+    } else {
+      // Other errors
+      console.error("[deleteLaporan] Error message:", error.message);
+      throw new Error(error.message || 'Terjadi kesalahan');
+    }
+  }
+};

@@ -3,6 +3,7 @@ import UserMetaCard from "@/components/user-profile/UserMetaCard";
 import Button from "@/components/ui/button/Button";
 import { Metadata } from "next";
 import React from "react";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
@@ -20,9 +21,11 @@ export default function Profile() {
         <div className="space-y-6">
           <UserMetaCard />
           <UserInfoCard />
-          <Button>
-            Tambah Akun Admin
-          </Button>
+          <Link href="/admin">
+            <Button>
+              Tambah Akun Admin
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
