@@ -26,7 +26,7 @@ export default function UtamaTables() {
         <ComponentCard title="Laporan Trip">
           <div className="overflow-hidden">
             {laporanData.map(({ month, weeks }) => (
-              <MonthReport key={month} month={month} weeks={weeks} />
+              <MonthReport key={month} month={month} weeks={weeks} tipe={"utama"} />
             ))}
           </div>
           {/* <BasicTableOne /> */}

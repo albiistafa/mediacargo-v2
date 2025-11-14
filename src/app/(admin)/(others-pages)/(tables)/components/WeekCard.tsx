@@ -7,9 +7,10 @@ interface WeekCardProps {
   label: string;
   start?: Date;
   end?: Date;
+  tipe?: "utama" | "cabang";
 }
 
-const WeekCard = ({ label, start, end }: WeekCardProps) => {
+const WeekCard = ({ label, start, end, tipe }: WeekCardProps) => {
   const router = useRouter();
 
   const handleClick = () => {
@@ -24,7 +25,7 @@ const WeekCard = ({ label, start, end }: WeekCardProps) => {
 
       const startDate = formatDateForURL(start);
       const endDate = formatDateForURL(end);
-      router.push(`/utama-tables/week-detail?start=${startDate}&end=${endDate}`);
+      router.push(`/${tipe}-tables/week-detail?start=${startDate}&end=${endDate}`);
     }
   };
 

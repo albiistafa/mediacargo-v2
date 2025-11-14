@@ -36,10 +36,15 @@ export interface LaporanItem {
   ruteLaporan: RuteLaporan[];
 }
 
+export interface LaporanData{
+  data: LaporanItem[];
+  pagination: Array<any>;
+}
+
 export interface LaporanResponse {
   success: boolean;
   message: string;
-  data: LaporanItem[];
+  data: LaporanData;
 }
 
 export interface GetAllLaporanParams {
@@ -152,6 +157,29 @@ export const formatDateTime = (dateString: string): string => {
   
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 };;
+
+// -------- Invoice (Export PDF) --------
+
+export interface InvoicePayload {
+  tipe: string; // e.g. "UTAMA" | "CABANG"
+  company: string;
+  contactPerson: string;
+  address: string;
+  startDate: string; // ISO with timezone, e.g. 2025-10-09T00:00:00+08:00
+  endDate: string;   // ISO with timezone, e.g. 2025-10-10T23:59:59+08:00
+}
+
+/**
+ * Call invoice API and return a Blob (PDF)
+ */
+export const exportInvoice = async (payload: InvoicePayload): Promise<Blob> => {
+  const res = await axiosInstance.post<Blob>(`/invoice`, payload, {
+    responseType: 'blob',
+  });
+  // Axios with responseType 'blob' returns data as Blob
+  // @ts-ignore - axios typing for blob generic
+  return res.data as Blob;
+};
 
 /**
  * Post laporan data

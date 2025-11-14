@@ -18,6 +18,8 @@ interface WeekTableProps {
 export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
   const [showDeleteAlert, setShowDeleteAlert] = React.useState(false);
   const { handleDelete: deleteItem, loading: deleteLoading, error: deleteError, success: deleteSuccess } = useDeleteLaporan();
+  // Safe data handling
+  const safeData: LaporanItem[] = Array.isArray(data) ? data : [];
 
   // Handle Edit
   const handleEdit = (item: LaporanItem) => {
@@ -43,15 +45,7 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
     );
   }
 
-  if (!data || data.length === 0) {
-    return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
-        <div className="flex justify-center items-center">
-          <div className="text-gray-500 dark:text-gray-400">Tidak ada data untuk periode ini</div>
-        </div>
-      </div>
-    );
-  }
+  // Not returning early on empty data; will show inline notification + table fallback row
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -81,6 +75,16 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
             variant="error"
             title="Error"
             message={deleteError}
+          />
+        </div>
+      )}
+
+      {safeData.length === 0 && !isLoading && (
+        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+          <Alert
+            variant="info"
+            title="Info"
+            message="Tidak ada data untuk periode ini"
           />
         </div>
       )}
@@ -211,7 +215,14 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
 
             {/* Table Body */}
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {data.map((item, index) => (
+              {safeData.length === 0 && (
+                <TableRow>
+                  <td colSpan={19} className="px-5 py-6 text-center">
+                    <div className="text-gray-500 dark:text-gray-400">Tidak ada data untuk periode ini</div>
+                  </td>
+                </TableRow>
+              )}
+              {safeData.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell className="px-5 py-4 text-start">
                     <div className="text-gray-800 dark:text-white/90 font-medium">

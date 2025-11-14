@@ -4,9 +4,10 @@ interface Week {
   label: string;
   start?: Date;
   end?: Date;
+  tipe?: "utama" | "cabang";
 }
 
-const MonthReport = ({ month, weeks }: { month: string; weeks: Week[] }) => (
+const MonthReport = ({ month, weeks, tipe }: { month: string; weeks: Week[]; tipe?: "utama" | "cabang" }) => (
   <section className="mb-8">
     <div className="flex justify-between items-center mb-4">
       <div>
@@ -25,6 +26,7 @@ const MonthReport = ({ month, weeks }: { month: string; weeks: Week[] }) => (
           label={week.label} 
           start={week.start}
           end={week.end}
+          tipe={tipe}
         />
       ))}
     </div>
