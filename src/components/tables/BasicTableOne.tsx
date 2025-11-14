@@ -12,12 +12,13 @@ import {
   getAllLaporan, 
   LaporanItem, 
   formatRuteLaporan, 
-  formatDateTime 
+  formatDateTime, 
+  GetAllLaporanParams
 } from "../../../services/laporan.services";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import Alert from "../ui/alert/Alert";
 import { useDeleteLaporan } from "@/hooks/useDeleteLaporan";
+import EditLaporanModal from "./EditLaporanModal";
+import Button from "../ui/button/Button";
 
 export default function BasicTableOne() {
   const [tableData, setTableData] = useState<LaporanItem[]>([]);
@@ -25,8 +26,13 @@ export default function BasicTableOne() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<LaporanItem | null>(null);
+  const [editAlert, setEditAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchField, setSearchField] = useState("all");
 
-  const { handleDelete: deleteItem, loading: deleteLoading, error: deleteError, success: deleteSuccess } = useDeleteLaporan(() => {
+  const { handleDelete: deleteItem, error: deleteError, success: deleteSuccess } = useDeleteLaporan(() => {
     // Callback ketika delete berhasil - refresh data
     fetchData();
   });
@@ -45,8 +51,19 @@ export default function BasicTableOne() {
 
   // Handle Edit
   const handleEdit = (item: LaporanItem) => {
-    console.log("Edit laporan:", item.id);
-    // TODO: Implementasi edit logic
+    setEditingItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleUpdateSuccess = (updatedItem: LaporanItem) => {
+    setTableData(prev => prev.map(item => (item.id === updatedItem.id ? { ...item, ...updatedItem } : item)));
+    setEditAlert({ type: "success", message: "Laporan berhasil diperbarui" });
+    setTimeout(() => setEditAlert(null), 5000);
   };
 
   // Normalisasi response agar selalu berupa array
@@ -69,13 +86,38 @@ export default function BasicTableOne() {
     return [];
   };
 
+  const fieldOptions = [
+    { label: "Semua Field", value: "all" },
+    { label: "Ritase", value: "ritase" },
+    { label: "Nama Rute", value: "rute" },
+    { label: "Jenis Trip", value: "trip" },
+    { label: "Nama Driver", value: "driver" },
+    { label: "Plat Nomor", value: "no_plat" },
+    { label: "Nomor Invoice", value: "no_invoice" },
+    { label: "Nomor Surat Jalan", value: "surat_jalan" },
+  ];
+
   // Fetch all data (tanpa pagination backend)
-  const fetchData = async () => {
+  const fetchData = async (override?: { search?: string; field?: string }) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await getAllLaporan();
+      const activeSearchTerm = override?.search ?? searchTerm;
+      const activeField = override?.field ?? searchField;
+
+      const trimmedSearch = activeSearchTerm?.trim();
+
+      let params: GetAllLaporanParams | undefined;
+
+      if (trimmedSearch) {
+        params = {
+          search: trimmedSearch,
+          field: activeField !== "all" ? activeField : undefined,
+        };
+      }
+
+      const response = await getAllLaporan(params);
 
       if (!response.success) {
         setError(response.message || "Gagal memuat data laporan");
@@ -85,6 +127,9 @@ export default function BasicTableOne() {
 
       const normalizedData = normalizeLaporanData(response.data as unknown);
       setTableData(normalizedData);
+      if (override) {
+        setCurrentPage(1);
+      }
     } catch (err) {
       console.error("Error fetching laporan:", err);
       setError("Gagal memuat data laporan");
@@ -92,6 +137,31 @@ export default function BasicTableOne() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = searchTerm.trim();
+    const nextTerm = trimmed;
+    setSearchTerm(nextTerm);
+    fetchData({ search: nextTerm, field: searchField });
+  };
+
+  const handleFieldChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    setSearchField(value);
+    if (searchTerm.trim()) {
+      fetchData({ search: searchTerm.trim(), field: value });
+    }
+  };
+
+  const handleClearFilters = () => {
+    if (!searchTerm && searchField === "all") {
+      return;
+    }
+    setSearchTerm("");
+    setSearchField("all");
+    fetchData({ search: "", field: "all" });
   };
 
   // Handle Delete dengan hook
@@ -173,7 +243,110 @@ export default function BasicTableOne() {
         </div>
       )}
 
+      {editAlert && (
+        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+          <Alert
+            variant={editAlert.type}
+            title={editAlert.type === "success" ? "Berhasil" : "Error"}
+            message={editAlert.message}
+          />
+        </div>
+      )}
+
       {/* Table */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="w-full">
+          <form onSubmit={handleSearchSubmit} className="hidden lg:block">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+                <svg
+                  className="fill-gray-500 dark:fill-gray-400"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                    fill=""
+                  />
+                </svg>
+              </span>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Cari sesuatu di laporan..."
+                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
+              />
+            </div>
+          </form>
+
+          <form onSubmit={handleSearchSubmit} className="lg:hidden">
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+                  <svg
+                    className="fill-gray-500 dark:fill-gray-400"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                      fill=""
+                    />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Cari laporan..."
+                  className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Cari
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center lg:gap-3">
+          <div className="flex items-center gap-2">
+            <label htmlFor="laporan-field-filter" className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Filter Berdasarkan
+            </label>
+            <select
+              id="laporan-field-filter"
+              value={searchField}
+              onChange={handleFieldChange}
+              className="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+            >
+              {fieldOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {(searchTerm || searchField !== "all") && (
+            <Button variant="outline" onClick={handleClearFilters} className="lg:w-auto">
+              Reset
+            </Button>
+          )}
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
           <div className="min-w-[2000px] relative">
@@ -336,6 +509,13 @@ export default function BasicTableOne() {
           </button>
         </div>
       )}
+
+      <EditLaporanModal
+        isOpen={isEditModalOpen}
+        item={editingItem}
+        onClose={closeEditModal}
+        onUpdated={handleUpdateSuccess}
+      />
     </div>
   );
 }

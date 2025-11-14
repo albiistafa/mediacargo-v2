@@ -9,6 +9,7 @@ import {
 import { LaporanItem, formatRuteLaporan, formatDateTime } from "../../../services/laporan.services";
 import Alert from "../ui/alert/Alert";
 import { useDeleteLaporan } from "@/hooks/useDeleteLaporan";
+import EditLaporanModal from "./EditLaporanModal";
 
 interface WeekTableProps {
   data: LaporanItem[];
@@ -16,15 +17,34 @@ interface WeekTableProps {
 }
 
 export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
+  const [rows, setRows] = React.useState<LaporanItem[]>(data);
   const [showDeleteAlert, setShowDeleteAlert] = React.useState(false);
-  const { handleDelete: deleteItem, loading: deleteLoading, error: deleteError, success: deleteSuccess } = useDeleteLaporan();
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [editingItem, setEditingItem] = React.useState<LaporanItem | null>(null);
+  const [editAlert, setEditAlert] = React.useState<{ type: "success" | "error"; message: string } | null>(null);
+  const { handleDelete: deleteItem, error: deleteError, success: deleteSuccess } = useDeleteLaporan();
+
+  React.useEffect(() => {
+    setRows(data);
+  }, [data]);
   // Safe data handling
   const safeData: LaporanItem[] = Array.isArray(data) ? data : [];
 
   // Handle Edit
   const handleEdit = (item: LaporanItem) => {
-    console.log("Edit laporan:", item.id);
-    // TODO: Implementasi edit logic
+    setEditingItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleUpdateSuccess = (updatedItem: LaporanItem) => {
+    setRows(prev => prev.map(row => (row.id === updatedItem.id ? { ...row, ...updatedItem } : row)));
+    setEditAlert({ type: "success", message: "Laporan berhasil diperbarui" });
+    setTimeout(() => setEditAlert(null), 5000);
   };
 
   // Handle Delete dengan hook
@@ -33,6 +53,7 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
     if (success) {
       setShowDeleteAlert(true);
       setTimeout(() => setShowDeleteAlert(false), 5000);
+      setRows(prev => prev.filter(row => row.id !== item.id));
     }
   };
   if (isLoading) {
@@ -45,7 +66,15 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
     );
   }
 
-  // Not returning early on empty data; will show inline notification + table fallback row
+  if (!rows || rows.length === 0) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
+        <div className="flex justify-center items-center">
+          <div className="text-gray-500 dark:text-gray-400">Tidak ada data untuk periode ini</div>
+        </div>
+      </div>
+    );
+  }
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -79,12 +108,12 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
         </div>
       )}
 
-      {safeData.length === 0 && !isLoading && (
+      {editAlert && (
         <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
           <Alert
-            variant="info"
-            title="Info"
-            message="Tidak ada data untuk periode ini"
+            variant={editAlert.type}
+            title={editAlert.type === "success" ? "Berhasil" : "Error"}
+            message={editAlert.message}
           />
         </div>
       )}
@@ -309,6 +338,13 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
         </div>
       </div>
     </div>
+
+      <EditLaporanModal
+        isOpen={isEditModalOpen}
+        item={editingItem}
+        onClose={closeEditModal}
+        onUpdated={handleUpdateSuccess}
+      />
     </>
   );
 }

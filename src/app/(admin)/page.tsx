@@ -13,7 +13,7 @@ export default function Dashboard() {
     <div className="min-h-screen grid grid-rows-[auto_1fr] gap-6 p-6">
       {/* Row atas - Sambutan */}
       <div className="flex flex-col items-start justify-center">
-        <h1 className="text-9xl font-bold text-gray-800 dark:text-white">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">
           Selamat datang, <span className="text-blue-600">Admin!</span>
         </h1>
         <p className="text-xl text-gray-500 dark:text-gray-400 mt-2">

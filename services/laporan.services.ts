@@ -1,5 +1,5 @@
 import axiosInstance from "../lib/axios";
-import { PostLaporanRequest, PostLaporanResponse } from "../types/laporan";
+import { PostLaporanRequest, PostLaporanResponse, UpdateLaporanRequest, UpdateLaporanResponse } from "../types/laporan";
 
 export interface RuteLaporan {
   id: number;
@@ -191,6 +191,26 @@ export const postLaporan = async (data: PostLaporanRequest): Promise<PostLaporan
   } catch (error: any) {
     if (error.response) {
       throw new Error(error.response.data.message || 'Gagal menambahkan laporan');
+    } else if (error.request) {
+      throw new Error('Tidak dapat terhubung ke server');
+    } else {
+      throw new Error(error.message || 'Terjadi kesalahan');
+    }
+  }
+};
+
+/**
+ * Update laporan data.
+ * Backend menggunakan endpoint yang sama dengan penambahan laporan,
+ * namun membutuhkan field `id` pada payload untuk menentukan record yang diubah.
+ */
+export const updateLaporan = async (data: UpdateLaporanRequest): Promise<UpdateLaporanResponse> => {
+  try {
+    const response = await axiosInstance.post<UpdateLaporanResponse>('/laporan', data);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data?.message || 'Gagal memperbarui laporan');
     } else if (error.request) {
       throw new Error('Tidak dapat terhubung ke server');
     } else {

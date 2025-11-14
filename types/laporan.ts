@@ -56,3 +56,9 @@ export interface PostLaporanResponse {
     updatedAt: string;
   };
 }
+
+export interface UpdateLaporanRequest extends PostLaporanRequest {
+  id: number;
+}
+
+export type UpdateLaporanResponse = PostLaporanResponse;
