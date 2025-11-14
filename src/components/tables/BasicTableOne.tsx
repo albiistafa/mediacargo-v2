@@ -49,6 +49,26 @@ export default function BasicTableOne() {
     // TODO: Implementasi edit logic
   };
 
+  // Normalisasi response agar selalu berupa array
+  const normalizeLaporanData = (payload: unknown): LaporanItem[] => {
+    if (Array.isArray(payload)) {
+      return payload;
+    }
+
+    if (payload && typeof payload === "object") {
+      const nested = (payload as { data?: unknown; rows?: unknown; items?: unknown }).data
+        ?? (payload as { data?: unknown; rows?: unknown; items?: unknown }).rows
+        ?? (payload as { data?: unknown; rows?: unknown; items?: unknown }).items;
+
+      if (Array.isArray(nested)) {
+        return nested as LaporanItem[];
+      }
+    }
+
+    console.warn("Unexpected laporan payload shape", payload);
+    return [];
+  };
+
   // Fetch all data (tanpa pagination backend)
   const fetchData = async () => {
     setIsLoading(true);
@@ -57,12 +77,18 @@ export default function BasicTableOne() {
     try {
       const response = await getAllLaporan();
 
-      if (response.success && response.data) {
-        setTableData(response.data);
+      if (!response.success) {
+        setError(response.message || "Gagal memuat data laporan");
+        setTableData([]);
+        return;
       }
+
+      const normalizedData = normalizeLaporanData(response.data as unknown);
+      setTableData(normalizedData);
     } catch (err) {
       console.error("Error fetching laporan:", err);
       setError("Gagal memuat data laporan");
+      setTableData([]);
     } finally {
       setIsLoading(false);
     }
