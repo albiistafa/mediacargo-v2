@@ -14,9 +14,9 @@ type PropsType = {
   value?: string;
   label?: string;
   placeholder?: string;
-  enableTime?: boolean; // Tambah opsi untuk enable time picker
-  timeFormat?: string; // Format jam (default: H:i)
-  dateFormat?: string; // Format tanggal (default: Y-m-d H:i)
+  enableTime?: boolean; 
+  timeFormat?: string; 
+  dateFormat?: string;
 };
 
 export default function DatePickerWithTime({
