@@ -7,25 +7,31 @@ export function useDeleteLaporan(onSuccess?: () => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; itemName: string } | null>(null);
 
-  const handleDelete = async (id: number, itemName: string): Promise<boolean> => {
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      `Apakah anda yakin ingin menghapus laporan ${itemName}? Tindakan ini tidak dapat dibatalkan.`
-    );
+  const openDeleteModal = (id: number, itemName: string) => {
+    setPendingDelete({ id, itemName });
+    setIsModalOpen(true);
+  };
 
-    if (!confirmed) {
-      return false;
-    }
+  const closeDeleteModal = () => {
+    setIsModalOpen(false);
+    setPendingDelete(null);
+  };
+
+  const confirmDelete = async (): Promise<boolean> => {
+    if (!pendingDelete) return false;
 
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const response = await deleteLaporan(id);
+      const response = await deleteLaporan(pendingDelete.id);
       console.log("Delete response:", response);
       setSuccess(true);
+      closeDeleteModal();
       
       // Call callback jika ada
       if (onSuccess) {
@@ -37,6 +43,7 @@ export function useDeleteLaporan(onSuccess?: () => void) {
       const errorMessage = err.message || "Gagal menghapus laporan";
       setError(errorMessage);
       console.error("Delete error in hook:", errorMessage, err);
+      closeDeleteModal();
       return false;
     } finally {
       setLoading(false);
@@ -49,10 +56,14 @@ export function useDeleteLaporan(onSuccess?: () => void) {
   };
 
   return {
-    handleDelete,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
     loading,
     error,
     success,
+    isModalOpen,
+    pendingDelete,
     resetState,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -19,6 +19,7 @@ import Alert from "../ui/alert/Alert";
 import { useDeleteLaporan } from "@/hooks/useDeleteLaporan";
 import EditLaporanModal from "./EditLaporanModal";
 import Button from "../ui/button/Button";
+import DeleteConfirmModal from "../ui/modal/DeleteConfirmModal";
 
 export default function BasicTableOne() {
   const [tableData, setTableData] = useState<LaporanItem[]>([]);
@@ -31,8 +32,18 @@ export default function BasicTableOne() {
   const [editAlert, setEditAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchField, setSearchField] = useState("all");
+  const [isSearching, setIsSearching] = useState(false);
 
-  const { handleDelete: deleteItem, error: deleteError, success: deleteSuccess } = useDeleteLaporan(() => {
+  const { 
+    openDeleteModal, 
+    closeDeleteModal, 
+    confirmDelete, 
+    loading: deleteLoading,
+    error: deleteError, 
+    success: deleteSuccess,
+    isModalOpen: isDeleteModalOpen,
+    pendingDelete
+  } = useDeleteLaporan(() => {
     // Callback ketika delete berhasil - refresh data
     fetchData();
   });
@@ -141,18 +152,13 @@ export default function BasicTableOne() {
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const trimmed = searchTerm.trim();
-    const nextTerm = trimmed;
-    setSearchTerm(nextTerm);
-    fetchData({ search: nextTerm, field: searchField });
+    // Search is handled by debounced effect, just prevent default form submission
   };
 
   const handleFieldChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
     setSearchField(value);
-    if (searchTerm.trim()) {
-      fetchData({ search: searchTerm.trim(), field: value });
-    }
+    // Debounced effect will handle the search automatically
   };
 
   const handleClearFilters = () => {
@@ -164,18 +170,58 @@ export default function BasicTableOne() {
     fetchData({ search: "", field: "all" });
   };
 
-  // Handle Delete dengan hook
-  const handleDelete = async (item: LaporanItem) => {
-    const success = await deleteItem(item.id, item.surat_jalan);
+  // Handle Delete dengan hook - open modal
+  const handleDelete = (item: LaporanItem) => {
+    openDeleteModal(item.id, item.surat_jalan);
+  };
+
+  // Handle confirm delete from modal
+  const handleConfirmDelete = async () => {
+    const success = await confirmDelete();
     if (success) {
       setShowDeleteAlert(true);
       setTimeout(() => setShowDeleteAlert(false), 5000);
     }
   };
 
+  // Debounce ref for search
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initial data fetch
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Debounced search effect - auto search after 500ms of no typing
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Don't search on initial render or if search term is being cleared
+    if (searchTerm === "" && searchField === "all") {
+      setIsSearching(false);
+      return;
+    }
+
+    // Show searching indicator
+    setIsSearching(true);
+
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      const trimmed = searchTerm.trim();
+      fetchData({ search: trimmed, field: searchField });
+      setIsSearching(false);
+    }, 500); // Wait 500ms after user stops typing
+
+    // Cleanup
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchTerm, searchField]);
 
   // Pagination manual di frontend
   const totalPages = Math.ceil(tableData.length / itemsPerPage);
@@ -202,19 +248,6 @@ export default function BasicTableOne() {
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
         <div className="flex justify-center items-center py-12">
           <div className="text-red-500">{error}</div>
-        </div>
-      </div>
-    );
-  }
-
-  // State Kosong
-  if (!tableData || tableData.length === 0) {
-    return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500 dark:text-gray-400">
-            Belum ada data laporan
-          </div>
         </div>
       </div>
     );
@@ -253,6 +286,15 @@ export default function BasicTableOne() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
+        itemName={pendingDelete?.itemName}
+        isLoading={deleteLoading}
+      />
+
       {/* Table */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="w-full">
@@ -279,9 +321,17 @@ export default function BasicTableOne() {
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Cari sesuatu di laporan..."
+                placeholder="Ketik untuk mencari otomatis..."
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
               />
+              {isSearching && (
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </span>
+              )}
             </div>
           </form>
 
@@ -309,13 +359,10 @@ export default function BasicTableOne() {
                   type="text"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Cari laporan..."
+                  placeholder="Ketik untuk mencari otomatis..."
                   className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Cari
-              </Button>
             </div>
           </form>
         </div>
@@ -396,7 +443,28 @@ export default function BasicTableOne() {
 
               {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {currentItems.map((item, index) => (
+                {currentItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={13} className="px-5 py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <svg className="w-16 h-16 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div className="text-gray-500 dark:text-gray-400">
+                          {searchTerm || searchField !== "all" 
+                            ? "Laporan tidak ditemukan" 
+                            : "Belum ada data laporan"}
+                        </div>
+                        {(searchTerm || searchField !== "all") && (
+                          <p className="text-sm text-gray-400 dark:text-gray-500">
+                            Coba dengan kata kunci atau filter lain
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentItems.map((item, index) => (
                   <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       {/* Regular Columns */}
                       <TableCell className="px-5 py-4 text-start font-medium text-gray-800 dark:text-white/90">
@@ -478,7 +546,8 @@ export default function BasicTableOne() {
                         </div>
                       </TableCell>
                     </TableRow>
-                ))}
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

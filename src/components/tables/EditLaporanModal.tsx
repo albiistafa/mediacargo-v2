@@ -6,6 +6,11 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import Alert from "../ui/alert/Alert";
+import Select from "../form/Select";
+import MultiSelectDuplicate from "../form/MultiSelectDuplicate";
+import { ChevronDownIcon } from "@/icons";
+import { useRute } from "@/hooks/useRute";
+import DatePickerWithTime from "@/components/form/date-picker-with-time";
 import {
   LaporanItem,
   formatRuteLaporan,
@@ -53,29 +58,11 @@ const emptyFormState: LaporanFormState = {
   mobil: "",
   keberangkatan: "",
   kedatangan: "",
-  rate_before_tax: "0",
-  ppn_rate: "0",
-  pph_rate: "0",
-  rate_after_tax: "0",
+  rate_before_tax: "",
+  ppn_rate: "",
+  pph_rate: "",
+  rate_after_tax: "",
   keterangan: "",
-};
-
-const toDatetimeLocal = (value: string): string => {
-  if (!value) {
-    return "";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  const tzOffset = date.getTimezoneOffset() * 60000;
-  const localISOTime = new Date(date.getTime() - tzOffset)
-    .toISOString()
-    .slice(0, 16);
-
-  return localISOTime;
 };
 
 const parseDateTime = (value: string): string => {
@@ -104,6 +91,24 @@ const toNumber = (value: string): number => {
   return parsed;
 };
 
+// Format angka ke format Rupiah (tanpa "Rp")
+const formatRupiah = (value: number | string): string => {
+  if (!value && value !== 0) return '';
+  
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
+  return new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(numValue);
+};
+
+// Parse format Rupiah kembali ke number
+const parseRupiah = (value: string): number => {
+  const cleaned = value.replace(/[^\d,-]/g, '').replace(',', '.');
+  return parseFloat(cleaned) || 0;
+};
+
 const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
   isOpen,
   item,
@@ -113,6 +118,29 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
   const [formState, setFormState] = useState<LaporanFormState>(emptyFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ruteSelections, setRuteSelections] = useState<Array<{ id: string; ruteId: number; ruteName: string }>>([]);
+  const { ruteList, fetchRute } = useRute();
+
+  // Fetch rute list on mount
+  useEffect(() => {
+    fetchRute();
+  }, []);
+
+  // Dropdown options
+  const jenisTrip = [
+    { value: "satu pihak", label: "Satu Pihak" },
+    { value: "dua pihak", label: "Dua Pihak" },
+  ];
+
+  const jenisRute = [
+    { value: "utama", label: "Utama" },
+    { value: "cabang", label: "Cabang" },
+  ];
+
+  const jenisRitase = [
+    { value: "reguler", label: "Reguler" },
+    { value: "dorongan", label: "Dorongan" },
+  ];
 
   useEffect(() => {
     if (item && isOpen) {
@@ -127,17 +155,31 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
         no_plat: item.no_plat ?? "",
         ket_plat: item.ket_plat ?? "",
         mobil: item.mobil ?? "",
-        keberangkatan: toDatetimeLocal(item.keberangkatan),
-        kedatangan: toDatetimeLocal(item.kedatangan),
-        rate_before_tax: String(item.rate_before_tax ?? 0),
-        ppn_rate: String(item.ppn_rate ?? 0),
-        pph_rate: String(item.pph_rate ?? 0),
-        rate_after_tax: String(item.rate_after_tax ?? 0),
+        keberangkatan: item.keberangkatan ?? "",
+        kedatangan: item.kedatangan ?? "",
+        rate_before_tax: item.rate_before_tax ? formatRupiah(item.rate_before_tax) : '',
+        ppn_rate: item.ppn_rate ? formatRupiah(item.ppn_rate) : '',
+        pph_rate: item.pph_rate ? formatRupiah(item.pph_rate) : '',
+        rate_after_tax: item.rate_after_tax ? formatRupiah(item.rate_after_tax) : '',
         keterangan: item.keterangan ?? "",
       });
+      
+      // Populate rute selections from item.ruteLaporan
+      if (item.ruteLaporan && item.ruteLaporan.length > 0) {
+        const selections = item.ruteLaporan.map((rute, index) => ({
+          id: `rute-${index}-${Date.now()}`,
+          ruteId: rute.rute_id,
+          ruteName: rute.rute?.rute || "",
+        }));
+        setRuteSelections(selections);
+      } else {
+        setRuteSelections([]);
+      }
+      
       setError(null);
     } else if (!isOpen) {
       setFormState(emptyFormState);
+      setRuteSelections([]);
       setError(null);
     }
   }, [item, isOpen]);
@@ -149,6 +191,30 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
     return formatRuteLaporan(item.ruteLaporan);
   }, [item]);
 
+  // Auto-calculate rate_after_tax
+  useEffect(() => {
+    if (formState.rate_before_tax && formState.rate_before_tax !== '') {
+      const rateBefore = typeof formState.rate_before_tax === 'string' 
+        ? parseRupiah(formState.rate_before_tax) 
+        : (formState.rate_before_tax || 0);
+      const ppn = typeof formState.ppn_rate === 'string'
+        ? parseRupiah(formState.ppn_rate)
+        : (formState.ppn_rate || 0);
+      const pph = typeof formState.pph_rate === 'string'
+        ? parseRupiah(formState.pph_rate)
+        : (formState.pph_rate || 0);
+      
+      const calculatedTotal = rateBefore + ppn - pph;
+      
+      if (rateBefore > 0 || ppn > 0 || pph > 0) {
+        setFormState(prev => ({
+          ...prev,
+          rate_after_tax: formatRupiah(calculatedTotal)
+        }));
+      }
+    }
+  }, [formState.rate_before_tax, formState.ppn_rate, formState.pph_rate]);
+
   const handleInputChange = (
     field: keyof LaporanFormState,
     value: string
@@ -158,6 +224,38 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
       [field]: value,
     }));
   };
+
+  // Handle currency input dengan format Rupiah
+  const handleCurrencyInput = (value: string, field: keyof LaporanFormState) => {
+    if (value === '') {
+      handleInputChange(field, '');
+      return;
+    }
+
+    const regex = /^-?[\d.,]*$/;
+    
+    if (regex.test(value)) {
+      const numValue = parseRupiah(value);
+      const formatted = formatRupiah(numValue);
+      handleInputChange(field, formatted);
+    }
+  };
+
+  const handleMultiSelectChange = (items: Array<{ id: string; value: string; text: string }>) => {
+    const newRuteSelections = items.map((item) => ({
+      id: item.id,
+      ruteId: parseInt(item.value),
+      ruteName: item.text,
+    }));
+    setRuteSelections(newRuteSelections);
+  };
+
+  // Convert ruteList to multiOptions format
+  const multiOptions = ruteList.map((rute) => ({
+    value: rute.id.toString(),
+    text: rute.rute,
+    selected: false,
+  }));
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -184,17 +282,18 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
         mobil: formState.mobil,
         keberangkatan: parseDateTime(formState.keberangkatan),
         kedatangan: parseDateTime(formState.kedatangan),
-        rate_before_tax: toNumber(formState.rate_before_tax),
-        ppn_rate: toNumber(formState.ppn_rate),
-        pph_rate: toNumber(formState.pph_rate),
-        rate_after_tax: toNumber(formState.rate_after_tax),
+        rate_before_tax: typeof formState.rate_before_tax === 'string' ? parseRupiah(formState.rate_before_tax) : toNumber(formState.rate_before_tax),
+        ppn_rate: typeof formState.ppn_rate === 'string' ? parseRupiah(formState.ppn_rate) : toNumber(formState.ppn_rate),
+        pph_rate: typeof formState.pph_rate === 'string' ? parseRupiah(formState.pph_rate) : toNumber(formState.pph_rate),
+        rate_after_tax: typeof formState.rate_after_tax === 'string' ? parseRupiah(formState.rate_after_tax) : toNumber(formState.rate_after_tax),
         keterangan: formState.keterangan,
       } as UpdateLaporanRequest;
 
-      if (item.ruteLaporan && item.ruteLaporan.length > 0) {
-        payload.ruteList = item.ruteLaporan.map((rute) => ({
-          rute_id: rute.rute_id,
-          urutan: rute.urutan,
+      // Use updated rute selections
+      if (ruteSelections.length > 0) {
+        payload.ruteList = ruteSelections.map((rute, index) => ({
+          rute_id: rute.ruteId,
+          urutan: index + 1,
         }));
       }
 
@@ -234,15 +333,6 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
         {error && (
           <Alert variant="error" title="Gagal" message={error} />
         )}
-
-        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm text-gray-600 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-gray-400">
-          <p>
-            <span className="font-medium text-gray-700 dark:text-gray-300">
-              Rute Detail:
-            </span>{" "}
-            {ruteDisplay}
-          </p>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -302,45 +392,104 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
               />
             </div>
             <div className="space-y-2">
-              <Label>Nama Rute</Label>
-              <Input
-                value={formState.rute}
-                onChange={(e) => handleInputChange("rute", e.target.value)}
-              />
+              <Label>Rute Utama/Cabang</Label>
+              <div className="relative">
+                <Select
+                  options={jenisRute}
+                  placeholder="Pilih Rute"
+                  value={formState.rute}
+                  onChange={(value) => handleInputChange("rute", value)}
+                />
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Jenis Trip</Label>
-              <Input
-                value={formState.trip}
-                onChange={(e) => handleInputChange("trip", e.target.value)}
-              />
+              <div className="relative">
+                <Select
+                  options={jenisTrip}
+                  placeholder="Pilih Trip"
+                  value={formState.trip}
+                  onChange={(value) => handleInputChange("trip", value)}
+                />
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <MultiSelectDuplicate
+              label="Input Rute"
+              options={multiOptions}
+              selectedItems={ruteSelections.map(r => ({
+                id: r.id,
+                value: r.ruteId.toString(),
+                text: r.ruteName
+              }))}
+              onChange={handleMultiSelectChange}
+            />
+            {ruteSelections.length > 0 && (
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Rute yang dipilih ({ruteSelections.length}):
+                </p>
+                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  {ruteSelections.map((rute, idx) => (
+                    <li key={rute.id} className="flex items-center">
+                      <span className="inline-block w-5 h-5 mr-2 text-center bg-blue-200 dark:bg-blue-800 rounded-full text-xs font-bold">
+                        {idx + 1}
+                      </span>
+                      {rute.ruteName}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label>Ritase</Label>
-              <Input
-                value={formState.ritase}
-                onChange={(e) => handleInputChange("ritase", e.target.value)}
-              />
+              <Label>Jenis Ritase</Label>
+              <div className="relative">
+                <Select
+                  options={jenisRitase}
+                  placeholder="Pilih Ritase"
+                  value={formState.ritase}
+                  onChange={(value) => handleInputChange("ritase", value)}
+                />
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Waktu Berangkat</Label>
-              <Input
-                type="datetime-local"
+              <DatePickerWithTime
+                id="edit-date-picker-keberangkatan"
+                label="Waktu Berangkat"
+                placeholder="YYYY-MM-DD HH:MM"
                 value={formState.keberangkatan}
-                onChange={(e) =>
-                  handleInputChange("keberangkatan", e.target.value)
-                }
+                enableTime={true}
+                dateFormat="Y-m-d H:i"
+                onChange={(selectedDates, dateStr) => {
+                  handleInputChange("keberangkatan", dateStr);
+                }}
               />
             </div>
             <div className="space-y-2">
-              <Label>Waktu Tiba</Label>
-              <Input
-                type="datetime-local"
+              <DatePickerWithTime
+                id="edit-date-picker-kedatangan"
+                label="Waktu Tiba"
+                placeholder="YYYY-MM-DD HH:MM"
                 value={formState.kedatangan}
-                onChange={(e) => handleInputChange("kedatangan", e.target.value)}
+                enableTime={true}
+                dateFormat="Y-m-d H:i"
+                onChange={(selectedDates, dateStr) => {
+                  handleInputChange("kedatangan", dateStr);
+                }}
               />
             </div>
           </div>
@@ -349,37 +498,41 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
             <div className="space-y-2">
               <Label>Rate Sebelum Tax</Label>
               <Input
-                type="number"
+                type="text"
                 value={formState.rate_before_tax}
                 onChange={(e) =>
-                  handleInputChange("rate_before_tax", e.target.value)
+                  handleCurrencyInput(e.target.value, "rate_before_tax")
                 }
+                placeholder="Masukkan rate"
               />
             </div>
             <div className="space-y-2">
               <Label>PPN 1,1%</Label>
               <Input
-                type="number"
+                type="text"
                 value={formState.ppn_rate}
-                onChange={(e) => handleInputChange("ppn_rate", e.target.value)}
+                onChange={(e) => handleCurrencyInput(e.target.value, "ppn_rate")}
+                placeholder="Masukkan PPN"
               />
             </div>
             <div className="space-y-2">
               <Label>PPH 2%</Label>
               <Input
-                type="number"
+                type="text"
                 value={formState.pph_rate}
-                onChange={(e) => handleInputChange("pph_rate", e.target.value)}
+                onChange={(e) => handleCurrencyInput(e.target.value, "pph_rate")}
+                placeholder="Masukkan PPH"
               />
             </div>
             <div className="space-y-2">
               <Label>Total Setelah Tax</Label>
               <Input
-                type="number"
+                type="text"
                 value={formState.rate_after_tax}
                 onChange={(e) =>
-                  handleInputChange("rate_after_tax", e.target.value)
+                  handleCurrencyInput(e.target.value, "rate_after_tax")
                 }
+                placeholder="Otomatis terhitung (bisa diedit)"
               />
             </div>
           </div>

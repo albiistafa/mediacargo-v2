@@ -22,11 +22,20 @@ const MultiSelectDuplicate: React.FC<MultiSelectDuplicateProps> = ({
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const toggleDropdown = () => {
     if (disabled) return;
     setIsOpen((prev) => !prev);
+    if (!isOpen) {
+      setSearchTerm(""); // Reset search when opening
+    }
   };
+
+  // Filter options based on search term
+  const filteredOptions = options.filter((option) =>
+    option.text.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSelect = (optionValue: string, optionText: string) => {
     // Generate unique ID untuk setiap selection (dengan timestamp untuk memastikan unik)
@@ -126,27 +135,50 @@ const MultiSelectDuplicate: React.FC<MultiSelectDuplicateProps> = ({
 
           {isOpen && (
             <div
-              className="absolute left-0 z-40 w-full overflow-y-auto bg-white rounded-lg shadow-sm top-full max-h-select dark:bg-gray-900"
+              className="absolute left-0 z-40 w-full bg-white rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 top-full dark:bg-gray-900"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col">
-                {options.map((option, index) => (
-                  <div key={index}>
-                    <div
-                      className={`hover:bg-primary/5 w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800`}
-                      onClick={() => {
-                        handleSelect(option.value, option.text);
-                        setIsOpen(false);
-                      }}
-                    >
-                      <div className="relative flex w-full items-center p-2 pl-2">
-                        <div className="mx-2 leading-6 text-gray-800 dark:text-white/90">
-                          {option.text}
+              {/* Search Input */}
+              <div className="sticky top-0 z-10 p-2 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                <input
+                  type="text"
+                  placeholder="Cari rute..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:border-gray-700 dark:bg-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  onClick={(e) => e.stopPropagation()}
+                  autoFocus
+                />
+              </div>
+
+              {/* Options List with Scroll */}
+              <div className="overflow-y-auto" style={{ maxHeight: '240px' }}>
+                <div className="flex flex-col">
+                  {filteredOptions.length > 0 ? (
+                    filteredOptions.map((option, index) => (
+                      <div key={index}>
+                        <div
+                          className={`hover:bg-blue-50 dark:hover:bg-blue-900/20 w-full cursor-pointer border-b border-gray-200 dark:border-gray-800 last:border-b-0`}
+                          onClick={() => {
+                            handleSelect(option.value, option.text);
+                            setIsOpen(false);
+                            setSearchTerm("");
+                          }}
+                        >
+                          <div className="relative flex w-full items-center p-3 pl-4">
+                            <div className="leading-6 text-gray-800 dark:text-white/90">
+                              {option.text}
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+                      Tidak ada rute ditemukan
                     </div>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
             </div>
           )}

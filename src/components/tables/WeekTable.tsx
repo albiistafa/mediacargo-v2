@@ -10,6 +10,7 @@ import { LaporanItem, formatRuteLaporan, formatDateTime } from "../../../service
 import Alert from "../ui/alert/Alert";
 import { useDeleteLaporan } from "@/hooks/useDeleteLaporan";
 import EditLaporanModal from "./EditLaporanModal";
+import DeleteConfirmModal from "../ui/modal/DeleteConfirmModal";
 
 interface WeekTableProps {
   data: LaporanItem[];
@@ -22,7 +23,16 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<LaporanItem | null>(null);
   const [editAlert, setEditAlert] = React.useState<{ type: "success" | "error"; message: string } | null>(null);
-  const { handleDelete: deleteItem, error: deleteError, success: deleteSuccess } = useDeleteLaporan();
+  const { 
+    openDeleteModal, 
+    closeDeleteModal, 
+    confirmDelete, 
+    loading: deleteLoading,
+    error: deleteError, 
+    success: deleteSuccess,
+    isModalOpen: isDeleteModalOpen,
+    pendingDelete
+  } = useDeleteLaporan();
 
   React.useEffect(() => {
     setRows(data);
@@ -47,13 +57,21 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
     setTimeout(() => setEditAlert(null), 5000);
   };
 
-  // Handle Delete dengan hook
-  const handleDelete = async (item: LaporanItem) => {
-    const success = await deleteItem(item.id, item.surat_jalan);
+  // Handle Delete dengan hook - open modal
+  const handleDelete = (item: LaporanItem) => {
+    openDeleteModal(item.id, item.surat_jalan);
+  };
+
+  // Handle confirm delete from modal
+  const handleConfirmDelete = async () => {
+    const success = await confirmDelete();
     if (success) {
       setShowDeleteAlert(true);
       setTimeout(() => setShowDeleteAlert(false), 5000);
-      setRows(prev => prev.filter(row => row.id !== item.id));
+      // Remove dari local state
+      if (pendingDelete) {
+        setRows(prev => prev.filter(row => row.id !== pendingDelete.id));
+      }
     }
   };
   if (isLoading) {
@@ -117,6 +135,15 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
           />
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
+        itemName={pendingDelete?.itemName}
+        isLoading={deleteLoading}
+      />
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto max-h-[600px] overflow-y-auto">
@@ -235,7 +262,7 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
                 </TableCell>
                 <TableCell
                   isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400"
+                  className="sticky right-0 z-10 bg-white dark:bg-gray-900 px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400 border-l border-gray-200 dark:border-gray-800"
                 >
                   Aksi
                 </TableCell>
@@ -309,7 +336,7 @@ export default function WeekTable({ data, isLoading = false }: WeekTableProps) {
                   <TableCell className="px-4 py-3 text-gray-600 dark:text-gray-400 text-start text-theme-sm">
                     {item.keterangan || '-'}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-center">
+                  <TableCell className="sticky right-0 z-10 bg-white dark:bg-gray-900 px-4 py-3 text-center border-l border-gray-200 dark:border-gray-800">
                     <div className="flex gap-2 justify-center">
                       <button
                         onClick={() => handleEdit(item)}

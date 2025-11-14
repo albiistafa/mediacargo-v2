@@ -66,7 +66,7 @@ export const getAllLaporan = async (
 
     // Jika tidak ada page/limit dari frontend, pakai nilai override
     queryParams.append('page', String(params?.page || 1));
-    queryParams.append('limit', String(params?.limit || 999999)); 
+    queryParams.append('limit', String(params?.limit || 50)); 
 
     if (params?.search) {
       queryParams.append('search', params.search);
