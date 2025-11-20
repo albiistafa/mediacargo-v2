@@ -87,17 +87,29 @@ export function useLaporan() {
         }
       };
 
+      // Helper function to parse Rupiah string to number
+      const parseRupiah = (value: string | number): number => {
+        if (typeof value === 'number') return value;
+        if (!value) return 0;
+        const cleaned = value.toString().replace(/[^\d,-]/g, '').replace(',', '.');
+        return parseFloat(cleaned) || 0;
+      };
+
       // Build ruteList array with urutan (sequence number)
       const ruteList = ruteSelections.map((rute, index) => ({
         rute_id: rute.ruteId,
         urutan: index + 1,
       }));
       
-      // Create final form data with ruteList and parsed dates
+      // Create final form data with ruteList, parsed dates, and parsed numbers
       const finalFormData = {
         ...formData,
         keberangkatan: parseDateTime(formData.keberangkatan),
         kedatangan: parseDateTime(formData.kedatangan),
+        rate_before_tax: parseRupiah(formData.rate_before_tax),
+        ppn_rate: parseRupiah(formData.ppn_rate),
+        pph_rate: parseRupiah(formData.pph_rate),
+        rate_after_tax: parseRupiah(formData.rate_after_tax),
         ruteList,
       };
       

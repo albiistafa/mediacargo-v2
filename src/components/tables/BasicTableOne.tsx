@@ -26,6 +26,8 @@ export default function BasicTableOne() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalData, setTotalData] = useState(0);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<LaporanItem | null>(null);
@@ -44,12 +46,9 @@ export default function BasicTableOne() {
     isModalOpen: isDeleteModalOpen,
     pendingDelete
   } = useDeleteLaporan(() => {
-    // Callback ketika delete berhasil - refresh data
+    // Callback ketika delete berhasil - refresh data with current search
     fetchData();
   });
-
-  // Jumlah data per halaman (ubah sesuai kebutuhan)
-  const itemsPerPage = 10;
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -77,26 +76,6 @@ export default function BasicTableOne() {
     setTimeout(() => setEditAlert(null), 5000);
   };
 
-  // Normalisasi response agar selalu berupa array
-  const normalizeLaporanData = (payload: unknown): LaporanItem[] => {
-    if (Array.isArray(payload)) {
-      return payload;
-    }
-
-    if (payload && typeof payload === "object") {
-      const nested = (payload as { data?: unknown; rows?: unknown; items?: unknown }).data
-        ?? (payload as { data?: unknown; rows?: unknown; items?: unknown }).rows
-        ?? (payload as { data?: unknown; rows?: unknown; items?: unknown }).items;
-
-      if (Array.isArray(nested)) {
-        return nested as LaporanItem[];
-      }
-    }
-
-    console.warn("Unexpected laporan payload shape", payload);
-    return [];
-  };
-
   const fieldOptions = [
     { label: "Semua Field", value: "all" },
     { label: "Ritase", value: "ritase" },
@@ -108,24 +87,24 @@ export default function BasicTableOne() {
     { label: "Nomor Surat Jalan", value: "surat_jalan" },
   ];
 
-  // Fetch all data (tanpa pagination backend)
-  const fetchData = async (override?: { search?: string; field?: string }) => {
+  // Fetch data with backend pagination
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const activeSearchTerm = override?.search ?? searchTerm;
-      const activeField = override?.field ?? searchField;
+      const trimmedSearch = searchTerm.trim();
 
-      const trimmedSearch = activeSearchTerm?.trim();
-
-      let params: GetAllLaporanParams | undefined;
+      const params: GetAllLaporanParams = {
+        page: currentPage,
+        limit: 10,
+      };
 
       if (trimmedSearch) {
-        params = {
-          search: trimmedSearch,
-          field: activeField !== "all" ? activeField : undefined,
-        };
+        params.search = trimmedSearch;
+        if (searchField !== "all") {
+          params.field = searchField;
+        }
       }
 
       const response = await getAllLaporan(params);
@@ -133,22 +112,28 @@ export default function BasicTableOne() {
       if (!response.success) {
         setError(response.message || "Gagal memuat data laporan");
         setTableData([]);
+        setTotalPages(1);
+        setTotalData(0);
         return;
       }
 
-      const normalizedData = normalizeLaporanData(response.data as unknown);
-      setTableData(normalizedData);
-      if (override) {
-        setCurrentPage(1);
-      }
+      // Backend returns { data: LaporanItem[], pagination: {...} }
+      const laporanData = response.data.data || [];
+      const pagination = response.data.pagination as any;
+      
+      setTableData(laporanData);
+      setTotalPages(pagination?.totalPages || 1);
+      setTotalData(pagination?.totalData || 0);
     } catch (err) {
       console.error("Error fetching laporan:", err);
       setError("Gagal memuat data laporan");
       setTableData([]);
+      setTotalPages(1);
+      setTotalData(0);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, searchField]);
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -167,7 +152,7 @@ export default function BasicTableOne() {
     }
     setSearchTerm("");
     setSearchField("all");
-    fetchData({ search: "", field: "all" });
+    setCurrentPage(1);
   };
 
   // Handle Delete dengan hook - open modal
@@ -199,19 +184,12 @@ export default function BasicTableOne() {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Don't search on initial render or if search term is being cleared
-    if (searchTerm === "" && searchField === "all") {
-      setIsSearching(false);
-      return;
-    }
-
     // Show searching indicator
     setIsSearching(true);
 
     // Set new timer
     debounceTimerRef.current = setTimeout(() => {
-      const trimmed = searchTerm.trim();
-      fetchData({ search: trimmed, field: searchField });
+      setCurrentPage(1); // Reset to page 1 on new search
       setIsSearching(false);
     }, 500); // Wait 500ms after user stops typing
 
@@ -223,35 +201,12 @@ export default function BasicTableOne() {
     };
   }, [searchTerm, searchField]);
 
-  // Pagination manual di frontend
-  const totalPages = Math.ceil(tableData.length / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = tableData.slice(indexOfFirstItem, indexOfLastItem);
+  // Fetch data when page, searchTerm, or searchField changes
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  // State Loading
-  if (isLoading) {
-    return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500 dark:text-gray-400">
-            Memuat semua data laporan...
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // State Error
-  if (error) {
-    return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-8">
-        <div className="flex justify-center items-center py-12">
-          <div className="text-red-500">{error}</div>
-        </div>
-      </div>
-    );
-  }
+  // Use tableData directly from backend (already paginated)
 
   return (
     <div className="space-y-4">
@@ -443,7 +398,25 @@ export default function BasicTableOne() {
 
               {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {currentItems.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={13} className="px-5 py-12 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-gray-500 dark:text-gray-400">Memuat data...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={13} className="px-5 py-12 text-center">
+                      <div className="text-red-500">{error}</div>
+                    </TableCell>
+                  </TableRow>
+                ) : tableData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={13} className="px-5 py-12 text-center">
                       <div className="flex flex-col items-center gap-3">
@@ -464,11 +437,11 @@ export default function BasicTableOne() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  currentItems.map((item, index) => (
+                  tableData.map((item, index) => (
                   <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       {/* Regular Columns */}
                       <TableCell className="px-5 py-4 text-start font-medium text-gray-800 dark:text-white/90">
-                        {indexOfFirstItem + index + 1}
+                        {(currentPage - 1) * 10 + index + 1}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
                         {item.surat_jalan}
@@ -554,24 +527,24 @@ export default function BasicTableOne() {
         </div>
       </div>
 
-      {/* Pagination Manual */}
+      {/* Backend Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 py-4">
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || isLoading}
             className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
 
           <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
-            Page {currentPage} of {totalPages}
+            Page {currentPage} of {totalPages} 
           </span>
 
           <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || isLoading}
             className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next

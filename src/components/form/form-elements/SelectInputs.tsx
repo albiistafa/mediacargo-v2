@@ -76,6 +76,7 @@ export default function SelectInputs({
            <Select
             options={jenisTrip}
             placeholder="Select Option"
+            value={formData?.trip || ""}
             onChange={(value) => handleSelectChange(value, 'trip')}
             className="dark:bg-dark-900"
           />
@@ -91,6 +92,7 @@ export default function SelectInputs({
            <Select
             options={jenisRute}
             placeholder="Select Option"
+            value={formData?.rute || ""}
             onChange={(value) => handleSelectChange(value, 'rute')}
             className="dark:bg-dark-900"
           />
@@ -142,6 +144,7 @@ export default function SelectInputs({
            <Select
             options={jenisRitase}
             placeholder="Select Option"
+            value={formData?.ritase || ""}
             onChange={(value) => handleSelectChange(value, 'ritase')}
             className="dark:bg-dark-900"
           />
