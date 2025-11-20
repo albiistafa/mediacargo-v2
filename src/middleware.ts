@@ -24,7 +24,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isAuthPath && isLoggedIn) {
-    const dashboardUrl = new URL('/account', request.url);
+    const dashboardUrl = new URL('/', request.url);
     return NextResponse.redirect(dashboardUrl);
   }
 
