@@ -11,6 +11,10 @@ interface TextAreaInputProps {
 }
 
 export default function TextAreaInput({ formData, onInputChange }: TextAreaInputProps) {
+  // Track if user manually edited PPN/PPH
+  const [isManualPPN, setIsManualPPN] = useState(false);
+  const [isManualPPH, setIsManualPPH] = useState(false);
+
   // Format angka ke format Rupiah (tanpa "Rp")
   const formatRupiah = (value: number | string): string => {
     if (!value && value !== 0) return '';
@@ -32,6 +36,37 @@ export default function TextAreaInput({ formData, onInputChange }: TextAreaInput
     return parseFloat(cleaned) || 0;
   };
 
+  // Auto-calculate PPN (1.1%) and PPH (2%) when rate_before_tax changes
+  useEffect(() => {
+    const rateBefore = typeof formData?.rate_before_tax === 'string' 
+      ? parseRupiah(formData.rate_before_tax) 
+      : (formData?.rate_before_tax || 0);
+    
+    if (rateBefore > 0) {
+      // Calculate PPN 1.1% and PPH 2%
+      const calculatedPPN = rateBefore * 0.011;
+      const calculatedPPH = rateBefore * 0.02;
+      
+      // Update PPN if not manually edited
+      if (!isManualPPN) {
+        onInputChange('ppn_rate', formatRupiah(calculatedPPN));
+      }
+      
+      // Update PPH if not manually edited
+      if (!isManualPPH) {
+        onInputChange('pph_rate', formatRupiah(calculatedPPH));
+      }
+    } else if (rateBefore === 0) {
+      // Reset when rate_before_tax is 0
+      if (!isManualPPN) {
+        onInputChange('ppn_rate', '');
+      }
+      if (!isManualPPH) {
+        onInputChange('pph_rate', '');
+      }
+    }
+  }, [formData?.rate_before_tax, isManualPPN, isManualPPH]);
+
   // Auto-calculate rate_after_tax when rate_before_tax, ppn_rate, or pph_rate changes
   useEffect(() => {
     const rateBefore = typeof formData?.rate_before_tax === 'string' 
@@ -47,14 +82,23 @@ export default function TextAreaInput({ formData, onInputChange }: TextAreaInput
     // Formula: rate_after_tax = rate_before_tax + ppn - pph
     const calculatedTotal = rateBefore + ppn - pph;
     
-    // Update with formatted value
+    // Update with formatted value or reset if all are 0
     if (rateBefore > 0 || ppn > 0 || pph > 0) {
       onInputChange('rate_after_tax', formatRupiah(calculatedTotal));
+    } else {
+      onInputChange('rate_after_tax', '');
     }
   }, [formData?.rate_before_tax, formData?.ppn_rate, formData?.pph_rate]);
 
   // Handle input dengan format Rupiah
   const handleCurrencyInput = (value: string, field: string) => {
+    // Mark as manually edited if it's PPN or PPH
+    if (field === 'ppn_rate') {
+      setIsManualPPN(true);
+    } else if (field === 'pph_rate') {
+      setIsManualPPH(true);
+    }
+
     // Jika kosong, set empty string
     if (value === '') {
       onInputChange(field, '');
