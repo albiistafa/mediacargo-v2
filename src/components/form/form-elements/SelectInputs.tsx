@@ -14,15 +14,13 @@ interface SelectInputsProps {
   ruteSelections: RuteSelection[];
   onInputChange: (field: string, value: any) => void;
   onRuteChange: (rutes: RuteSelection[]) => void;
-  validationError?: string | null;
 }
 
 export default function SelectInputs({ 
   formData, 
   ruteSelections, 
   onInputChange, 
-  onRuteChange,
-  validationError 
+  onRuteChange
 }: SelectInputsProps) {
   const { ruteList, fetchRute, loading, error } = useRute();
 
@@ -114,11 +112,6 @@ export default function SelectInputs({
             }))}
             onChange={handleMultiSelectChange}
           />
-          {validationError && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {validationError}
-            </p>
-          )}
           {ruteSelections.length > 0 && (
             <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

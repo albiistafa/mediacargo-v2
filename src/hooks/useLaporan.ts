@@ -48,10 +48,52 @@ export function useLaporan() {
   };
 
   const validateForm = () => {
+    // Validasi rute
     if (ruteSelections.length === 0) {
       setValidationError('Minimal 1 rute harus dipilih');
       return false;
     }
+
+    // Validasi field wajib
+    const requiredFields = [
+      { field: 'ritase', label: 'Jenis Ritase' },
+      { field: 'trip', label: 'Jenis Trip' },
+      { field: 'rute', label: 'Rute Utama/Cabang' },
+      { field: 'driver', label: 'Nama Driver' },
+      { field: 'surat_jalan', label: 'Nomor Surat Jalan' },
+      { field: 'no_seal', label: 'Nomor Seal' },
+      { field: 'no_plat', label: 'Plat Nomor' },
+      { field: 'ket_plat', label: 'Keterangan Plat' },
+      { field: 'mobil', label: 'Jenis Kendaraan' },
+      { field: 'keberangkatan', label: 'Tanggal Keberangkatan' },
+      { field: 'kedatangan', label: 'Tanggal Kedatangan' },
+      { field: 'no_invoice', label: 'Nomor Invoice' },
+    ];
+
+    for (const { field, label } of requiredFields) {
+      const value = formData[field as keyof PostLaporanRequest];
+      if (!value || (typeof value === 'string' && value.trim() === '')) {
+        setValidationError(`${label} harus diisi`);
+        return false;
+      }
+    }
+
+    // Validasi field rate (minimal harus > 0, kecuali PPN yang boleh kosong)
+    const rateFields = [
+      { field: 'rate_before_tax', label: 'Rate Sebelum Tax' },
+      { field: 'pph_rate', label: 'PPH' },
+      { field: 'rate_after_tax', label: 'Rate Setelah Tax' },
+    ];
+
+    for (const { field, label } of rateFields) {
+      const value = formData[field as keyof PostLaporanRequest];
+      const numValue = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^\d.-]/g, ''));
+      if (!numValue || numValue <= 0) {
+        setValidationError(`${label} harus diisi dengan nilai lebih dari 0`);
+        return false;
+      }
+    }
+
     return true;
   };
 

@@ -264,6 +264,50 @@ const EditLaporanModal: React.FC<EditLaporanModalProps> = ({
       return;
     }
 
+    // Validasi field wajib
+    const requiredFields = [
+      { field: 'ritase', label: 'Jenis Ritase', value: formState.ritase },
+      { field: 'trip', label: 'Jenis Trip', value: formState.trip },
+      { field: 'rute', label: 'Rute Utama/Cabang', value: formState.rute },
+      { field: 'driver', label: 'Nama Driver', value: formState.driver },
+      { field: 'surat_jalan', label: 'Nomor Surat Jalan', value: formState.surat_jalan },
+      { field: 'no_seal', label: 'Nomor Seal', value: formState.no_seal },
+      { field: 'no_plat', label: 'Plat Nomor', value: formState.no_plat },
+      { field: 'ket_plat', label: 'Keterangan Plat', value: formState.ket_plat },
+      { field: 'mobil', label: 'Jenis Kendaraan', value: formState.mobil },
+      { field: 'keberangkatan', label: 'Tanggal Keberangkatan', value: formState.keberangkatan },
+      { field: 'kedatangan', label: 'Tanggal Kedatangan', value: formState.kedatangan },
+      { field: 'no_invoice', label: 'Nomor Invoice', value: formState.no_invoice },
+    ];
+
+    for (const { label, value } of requiredFields) {
+      if (!value || (typeof value === 'string' && value.trim() === '')) {
+        setError(`${label} harus diisi`);
+        return;
+      }
+    }
+
+    // Validasi rute selections
+    if (ruteSelections.length === 0) {
+      setError('Minimal 1 rute harus dipilih');
+      return;
+    }
+
+    // Validasi field rate (minimal harus > 0, kecuali PPN yang boleh kosong)
+    const rateFields = [
+      { field: 'rate_before_tax', label: 'Rate Sebelum Tax', value: formState.rate_before_tax },
+      { field: 'pph_rate', label: 'PPH', value: formState.pph_rate },
+      { field: 'rate_after_tax', label: 'Rate Setelah Tax', value: formState.rate_after_tax },
+    ];
+
+    for (const { label, value } of rateFields) {
+      const numValue = typeof value === 'string' ? parseRupiah(value) : parseFloat(String(value).replace(/[^\d.-]/g, ''));
+      if (!numValue || numValue <= 0) {
+        setError(`${label} harus diisi dengan nilai lebih dari 0`);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setError(null);
 

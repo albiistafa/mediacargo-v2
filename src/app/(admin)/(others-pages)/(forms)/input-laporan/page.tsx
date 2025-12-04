@@ -14,14 +14,14 @@ export default function FormElements() {
   const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
-    if (success || error) {
+    if (success || error || validationError) {
       setShowAlert(true);
       const timer = setTimeout(() => {
         setShowAlert(false);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [success, error]);
+  }, [success, error, validationError]);
 
   const onFormSubmit = (e: React.FormEvent) => {
     handleSubmit(e).then(() => {
@@ -51,6 +51,13 @@ export default function FormElements() {
               message={error}
             />
           )}
+          {validationError && (
+            <Alert
+              variant="error"
+              title="Validasi Gagal"
+              message={validationError}
+            />
+          )}
         </div>
       )}
 
@@ -62,7 +69,6 @@ export default function FormElements() {
           ruteSelections={ruteSelections}
           onInputChange={handleInputChange as (field: string, value: any) => void}
           onRuteChange={handleRuteChange}
-          validationError={validationError}
         />
         <TextAreaInput formData={formData} onInputChange={handleInputChange as (field: string, value: any) => void} />
         
