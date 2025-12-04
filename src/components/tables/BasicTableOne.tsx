@@ -212,7 +212,7 @@ export default function BasicTableOne() {
     <div className="space-y-4">
       {/* Delete Alert */}
       {showDeleteAlert && deleteSuccess && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+        <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
           <Alert
             variant="success"
             title="Berhasil"
@@ -222,7 +222,7 @@ export default function BasicTableOne() {
       )}
 
       {showDeleteAlert && deleteError && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+        <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
           <Alert
             variant="error"
             title="Error"
@@ -232,7 +232,7 @@ export default function BasicTableOne() {
       )}
 
       {editAlert && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
+        <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 lg:bottom-6 lg:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-full max-w-sm animate-in fade-in slide-in-from-right-5 duration-300">
           <Alert
             variant={editAlert.type}
             title={editAlert.type === "success" ? "Berhasil" : "Error"}
@@ -251,7 +251,7 @@ export default function BasicTableOne() {
       />
 
       {/* Table */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-2 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="w-full">
           <form onSubmit={handleSearchSubmit} className="hidden lg:block">
             <div className="relative">
@@ -323,15 +323,15 @@ export default function BasicTableOne() {
         </div>
 
         <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:items-center lg:gap-3">
-          <div className="flex items-center gap-2">
-            <label htmlFor="laporan-field-filter" className="text-sm font-medium text-gray-600 dark:text-gray-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <label htmlFor="laporan-field-filter" className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
               Filter Berdasarkan
             </label>
             <select
               id="laporan-field-filter"
               value={searchField}
               onChange={handleFieldChange}
-              className="h-11 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+              className="w-full sm:w-auto h-10 sm:h-11 rounded-lg border border-gray-200 bg-white px-2 sm:px-3 text-xs sm:text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
             >
               {fieldOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -342,16 +342,16 @@ export default function BasicTableOne() {
           </div>
 
           {(searchTerm || searchField !== "all") && (
-            <Button variant="outline" onClick={handleClearFilters} className="lg:w-auto">
+            <Button variant="outline" onClick={handleClearFilters} className="w-full sm:w-auto lg:w-auto text-sm">
               Reset
             </Button>
           )}
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="overflow-hidden rounded-lg sm:rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
-          <div className="min-w-[2000px] relative">
+          <div className="min-w-[1200px] sm:min-w-[1600px] lg:min-w-[2000px] relative">
             <Table>
               {/* Table Header */}
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] sticky top-0 z-40 bg-white dark:bg-gray-900">
@@ -380,7 +380,7 @@ export default function BasicTableOne() {
                     <TableCell
                       key={idx}
                       isHeader
-                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                      className="px-2 sm:px-3 lg:px-5 py-2 sm:py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
                       {header}
                     </TableCell>
@@ -389,7 +389,7 @@ export default function BasicTableOne() {
                   {/* Sticky Aksi Column Header */}
                   <TableCell
                     isHeader
-                    className="sticky right-0 z-50 px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-white/[0.05]"
+                    className="sticky right-0 z-50 px-2 sm:px-3 lg:px-5 py-2 sm:py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-white/[0.05]"
                   >
                     Aksi
                   </TableCell>
@@ -440,79 +440,79 @@ export default function BasicTableOne() {
                   tableData.map((item, index) => (
                   <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       {/* Regular Columns */}
-                      <TableCell className="px-5 py-4 text-start font-medium text-gray-800 dark:text-white/90">
+                      <TableCell className="px-2 sm:px-3 lg:px-5 py-2 sm:py-3 lg:py-4 text-start font-medium text-gray-800 dark:text-white/90 text-xs sm:text-sm">
                         {(currentPage - 1) * 10 + index + 1}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90">
                         {item.surat_jalan}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90">
                         {item.no_seal}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
                         {item.driver}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90">
                         {formatRuteLaporan(item.ruteLaporan)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {item.rute}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {item.ritase}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
                         {item.no_plat}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {item.ket_plat}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {item.mobil}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {item.trip}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {formatDateTime(item.keberangkatan)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {formatDateTime(item.kedatangan)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90 font-medium">
                         {formatCurrency(item.rate_before_tax)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {formatCurrency(item.ppn_rate)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {formatCurrency(item.pph_rate)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-800 dark:text-white/90 font-semibold">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-800 dark:text-white/90 font-semibold">
                         {formatCurrency(item.rate_after_tax)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-theme-sm text-gray-600 dark:text-gray-400">
+                      <TableCell className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-theme-sm text-gray-600 dark:text-gray-400">
                         {item.keterangan || "-"}
                       </TableCell>
 
                       {/* Sticky Aksi Column di akhir */}
-                      <TableCell className="sticky right-0 z-40 px-4 py-3 text-center bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-white/[0.05]">
-                        <div className="flex gap-2 justify-center">
+                      <TableCell className="sticky right-0 z-40 px-2 sm:px-4 py-3 text-center bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-white/[0.05]">
+                        <div className="flex gap-1 sm:gap-2 justify-center">
                           <button
                             onClick={() => handleEdit(item)}
-                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded transition-colors"
+                            className="p-1.5 sm:p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded transition-colors"
                             title="Edit"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button>
                           <button
                             onClick={() => handleDelete(item)}
-                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded transition-colors"
+                            className="p-1.5 sm:p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded transition-colors"
                             title="Delete"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -529,23 +529,23 @@ export default function BasicTableOne() {
 
       {/* Backend Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 py-4">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-3 py-3 sm:py-4">
           <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1 || isLoading}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-3 py-2 sm:px-4 text-sm sm:text-base bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Previous
           </button>
 
-          <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
+          <span className="px-3 py-2 sm:px-4 text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium">
             Page {currentPage} of {totalPages} 
           </span>
 
           <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages || isLoading}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-3 py-2 sm:px-4 text-sm sm:text-base bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>

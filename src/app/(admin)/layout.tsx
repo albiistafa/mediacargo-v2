@@ -32,7 +32,7 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="flex-1 overflow-hidden p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6 w-full">{children}</div>
+        <div className="flex-1 overflow-hidden p-2 sm:p-4 md:p-6 mx-auto max-w-(--breakpoint-2xl) w-full">{children}</div>
       </div>
     </div>
   );
