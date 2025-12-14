@@ -6,7 +6,7 @@ import React from "react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Profile | Media Cargo Admin",
+  title: "Media Cargo Admin",
   description: "Halaman profile admin - PT. Media Realindo Express",
 };
 
