@@ -2,7 +2,7 @@ import SignInForm from "@/components/auth/SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Meida Cargo - Signin Page",
+  title: "Media Cargo Admin",
   description: "Sign in to your account to access the Media Cargo dashboard.",
 };
 
