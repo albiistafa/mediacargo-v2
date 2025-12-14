@@ -9,7 +9,7 @@ import Alert from "@/components/ui/alert/Alert";
 import { useLaporan } from "@/hooks/useLaporan";
 import React, { useState, useEffect } from "react";
 
-export default function FormElements() {
+export default function InputLaporanPage() {
   const { formData, ruteSelections, handleInputChange, handleRuteChange, loading, error, validationError, success, handleSubmit } = useLaporan();
   const [showAlert, setShowAlert] = useState(false);
 

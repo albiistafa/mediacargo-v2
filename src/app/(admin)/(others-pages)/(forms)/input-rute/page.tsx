@@ -14,8 +14,7 @@ import React from "react";
 
 export const metadata: Metadata = {
   title: "Media Cargo Admin",
-  description:
-    "This is Next.js Form Elements page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+  description: "Form input data rute pengiriman - PT. Media Realindo Express",
 };
 
 export default function InputRute() {

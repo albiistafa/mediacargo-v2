@@ -7,8 +7,7 @@ import React from "react";
 
 export const metadata: Metadata = {
   title: "Media Cargo Admin",
-  description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+  description: "Halaman untuk menambah akun admin baru - PT. Media Realindo Express",
 };
 
 export default function Admin() {

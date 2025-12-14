@@ -6,9 +6,8 @@ import React from "react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Media Cargo Admin",
-  description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+  title: "Profile | Media Cargo Admin",
+  description: "Halaman profile admin - PT. Media Realindo Express",
 };
 
 export default function Profile() {
